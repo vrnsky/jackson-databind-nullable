@@ -15,7 +15,11 @@ before_script:
       gpg --check-trustdb ;
     fi;
 
-script: ./mvnw clean verify
+script: 
+  - echo "TRAVIS_TAG $TRAVIS_TAG"
+  - echo "SONATYPE_USERNAME $SONATYPE_USERNAME"
+  - echo "TRAVIS_PULL_REQUEST $TRAVIS_PULL_REQUEST"
+  - ./mvnw clean verify
 
 after_success:
   # push to maven repo
