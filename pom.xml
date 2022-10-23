@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <name>JsonNullable Jackson module</name>
     <description>JsonNullable wrapper class and Jackson module to support fields with meaningful null values.</description>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.2.5-SNAPSHOT</version>
 
     <url>https://github.com/OpenAPITools/jackson-databind-nullable</url>
     <scm>
@@ -37,6 +37,7 @@
         <!-- Generate PackageVersion.java into this directory. -->
         <packageVersion.dir>org/openapitools/jackson/nullable</packageVersion.dir>
         <packageVersion.package>${project.groupId}.jackson.nullable</packageVersion.package>
+        <jackson.version>2.14.0-rc2</jackson.version>
     </properties>
 
     <dependencies>
