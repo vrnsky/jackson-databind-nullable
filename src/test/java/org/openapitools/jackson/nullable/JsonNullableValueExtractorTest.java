@@ -1,5 +1,6 @@
 package org.openapitools.jackson.nullable;
 
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,13 +18,16 @@ import static org.junit.Assert.assertTrue;
 
 
 public class JsonNullableValueExtractorTest {
-
     private Validator validator;
 
     @Before
     public void setUp() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
+        try (ValidatorFactory factory = Validation.byDefaultProvider()
+                .configure()
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()) {
+            validator = factory.getValidator();
+        }
     }
 
     @Test
@@ -31,8 +35,8 @@ public class JsonNullableValueExtractorTest {
         final UnitIssue2 unitIssue2 = new UnitIssue2();
         unitIssue2.setRestrictedString("a >15 character long string");
         unitIssue2.setNullableRestrictedString("a >15 character long string");
-        unitIssue2.setRestrictedInt(Integer.valueOf(16));
-        unitIssue2.setNullableRestrictedInt(Integer.valueOf(16));
+        unitIssue2.setRestrictedInt(16);
+        unitIssue2.setNullableRestrictedInt(16);
 
         final Set<ConstraintViolation<UnitIssue2>> validate = validator.validate(unitIssue2);
 
@@ -53,10 +57,9 @@ public class JsonNullableValueExtractorTest {
         Set<ConstraintViolation<UnitIssue3>> violations = validator.validate(unitIssue);
         assertEquals(1, violations.size());
     }
-
-    // ensure that JsonNullable<Collection<T>> gets unwrapped and the collection items are validated as well
+    
     @Test
-    public void testUnwrapList() {
+    public void testCollection() {
         Car aCar = new Car();
 
         // test for java.util.List
@@ -72,7 +75,7 @@ public class JsonNullableValueExtractorTest {
         assertEquals(3, validationResult.size());
         assertTrue(validationResult.stream().anyMatch(c -> c.getPropertyPath().toString().equals("wheels[1].screws") && c.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName().equals("NotNull")));
         assertTrue(validationResult.stream().anyMatch(c -> c.getPropertyPath().toString().equals("wheels[3].screws") && c.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName().equals("NotNull")));
-        assertTrue(validationResult.stream().anyMatch(c -> c.getPropertyPath().toString().equals("persons[0].role") && c.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName().equals("NotNull")));
+        assertTrue(validationResult.stream().anyMatch(c -> c.getPropertyPath().toString().equals("persons[].role") && c.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName().equals("NotNull")));
     }
 
 
@@ -116,10 +119,10 @@ public class JsonNullableValueExtractorTest {
 
     private static class Car {
         @Valid
-        private JsonNullable<List<Wheel>> wheels = JsonNullable.undefined();
+        private JsonNullable<List<@Valid Wheel>> wheels = JsonNullable.undefined();
 
         @Valid
-        private JsonNullable<Set<Person>> persons = JsonNullable.undefined();
+        private JsonNullable<Set<@Valid Person>> persons = JsonNullable.undefined();
 
         public void addWheel(Wheel wheel) {
             if (wheels == null || !wheels.isPresent()) {
